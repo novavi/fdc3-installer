@@ -630,7 +630,7 @@ Note that if an installer was included directly in a future version of the `@fin
 
 ### Why didn't you use an IoC container for the strategies?
 
-Having used [InversifyJS])(https://inversify.io) on a previous TypeScript-based project, the author did consider this initially but it was felt the trade-off for this library was not worth it. In particular, the library only deals with simple functions for just three strategies. It does not deal with large numbers of classes or complex class hierarchies of the kind that are often managed via an IoC container.
+Having used [InversifyJS](https://inversify.io) on a previous TypeScript-based project, the author did consider this initially but it was felt the trade-off for this library was not worth it. In particular, the library only deals with simple functions for just three strategies. It does not deal with large numbers of classes or complex class hierarchies of the kind that are often managed via an IoC container.
 
 The use of vanilla JavaScript [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) objects was deemed sufficient to support intial development, and should make the library it easy to grok for anyone casually perusing the codebase. However, this decision could be revisited if there were complelling reasons to do so.
 

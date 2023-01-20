@@ -1,0 +1,33 @@
+{
+  "name": "fdc3-installer",
+  "version": "0.7.35",
+  "author": "Derek Novavi <derek.novavi@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/novavi/fdc3-installer.git"
+  },
+  "publishConfig": {
+    "tag": "latest"
+  },
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "module": "dist/fdc3-installer.esm.js",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "prepare": "tsdx build"
+  },
+  "peerDependencies": {},
+  "devDependencies": {
+    "tsdx": "^0.14.1",
+    "tslib": "^2.0.1",
+    "typescript": "^4.0.3"
+  }
+}
