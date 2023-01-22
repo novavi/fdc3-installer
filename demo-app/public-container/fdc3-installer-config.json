@@ -1,0 +1,70 @@
+{
+  "discoveryStrategy": {
+    "type": "ContainerExplicit",
+    "providerId": {
+      "name": "Flugelbinder FDC3 Desktop Agent",
+      "version": "7.0.0"
+    },
+    "validateProvider": true
+  },
+  "providerDirectory": [
+    {
+      "providerId": {
+        "name": "Acme FDC3 Desktop Agent",
+        "version": "4.0.0",
+        "fdc3Version": "1.2"
+      },
+      "providerImplementation": {
+        "moduleUrl": "http://localhost:4500/acme/4.0.0/fdc3-agent.js",
+        "exportedName": "default",
+        "creationStrategy": {
+          "type": "ClassInstance"
+        },
+        "bootstrapStrategy": {
+          "type": "Implicit"
+        }
+      }
+    },
+    {
+      "providerId": {
+        "name": "Flugelbinder FDC3 Desktop Agent",
+        "version": "6.0.0",
+        "fdc3Version": "1.2"
+      },
+      "providerImplementation": {
+        "moduleUrl": "http://localhost:4501/flugelbinder/6.0.0/fdc3-agent.js",
+        "exportedName": "fdc3",
+        "creationStrategy": {
+          "type": "ClassInstance"
+        },
+        "bootstrapStrategy": {
+          "type": "Explicit",
+          "methodName": "bootstrap",
+          "methodArgs": [
+            "http://localhost:4601/fdc3-service"
+          ]
+        }
+      }
+    },
+    {
+      "providerId": {
+        "name": "Flugelbinder FDC3 Desktop Agent",
+        "version": "7.0.0",
+        "fdc3Version": "2.0"
+      },
+      "providerImplementation": {
+        "moduleUrl": "http://localhost:4501/flugelbinder/7.0.0/fdc3-agent.js",
+        "exportedName": "fdc3AgentFactory",
+        "creationStrategy": {
+          "type": "FactoryFunction",
+          "functionArgs": [
+            "http://localhost:4701/fdc3-service"
+          ]
+        },
+        "bootstrapStrategy": {
+          "type": "Implicit"
+        }
+      }
+    }
+  ]
+}

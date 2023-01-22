@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Demo FDC3 App" />
+    <title>Demo FDC3 App</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      textarea {
+        font-family: monospace;
+        resize: none;
+      }
+
+      .app {
+        margin: 20px;
+      }
+    </style>
+    <script type="module">
+      import { fdc3Ready, getInfo } from './scripts/fdc3-2.0.0-beta.5.esm.js';
+      import { fdc3Installer, InstallerConfigSource } from './scripts/fdc3-installer-0.7.35.esm.js';
+
+      // Get info about fdc3-installer
+      const installerMetadata = await fdc3Installer.getInfo();
+      document.querySelector('#installerInfo').value = JSON.stringify(installerMetadata, null, 2);
+
+      // Discover, import, create and bootstrap an FDC3 Desktop Agent (using either InstallerConfigSource.Container or InstallerConfigSource.App)
+      const { providerDefinition, fdc3 } = await fdc3Installer.installAgent(InstallerConfigSource.Container);
+      document.querySelector('#discoveredProviderDef').value = JSON.stringify(providerDefinition, null, 2);
+
+      // Use FDC3 API methods as normal, based on whatever FDC3 Desktop Agent was installed above
+      await fdc3Ready();
+      const agentImpMetadata = await getInfo();
+      document.querySelector('#agentInfo').value = JSON.stringify(agentImpMetadata, null, 2);
+
+      // Note that as an alternative to using the  getInfo()  wrapper function above, we could instead use  fdc3.getInfo()
+      // This is because the  fdc3Installer.installAgent()  method actually returns the FDC3 Desktop Agent instance alongside the provider definition.
+    </script>
+  </head>
+  <body>
+    <div class="app">
+      <h3>Demo FDC3 App (using fdc3-installer library)</h3>
+      <p>Installer info:</p>
+      <textarea id="installerInfo" cols="72" rows="3" wrap="off"></textarea>
+      <p>Discovered provider definition:</p>
+      <textarea id="discoveredProviderDef" cols="72" rows="21" wrap="off"></textarea>
+      <p>Installed agent info:</p>
+      <textarea id="agentInfo" cols="72" rows="4" wrap="off"></textarea>
+    </div>
+  </body>
+</html>

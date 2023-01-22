@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Micro-frontend Container" />
+    <title>Micro-frontend Container</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .mfec-header {
+        height: 66px;
+        padding-left: 20px;
+      }
+
+      .app-left {
+        float: left;
+        width: 566px;
+        height: calc(100vh - 140px);
+        margin: 20px;
+        border: 3px dashed #999999;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mfec-header">
+      <h1>Simulated Micro-frontend Container</h1>
+    </div>
+    <iframe src="http://localhost:3000" class="app-left" />
+  </body>
+</html>
