@@ -331,7 +331,7 @@ function _asyncToGenerator(fn) {
 }
 
 var fdc3InstallerName = 'Open FDC3 Installer';
-var fdc3InstallerVersion = '0.7.35';
+var fdc3InstallerVersion = '0.7.36';
 
 var InstallerConfigSource;
 (function (InstallerConfigSource) {
@@ -876,7 +876,7 @@ var fdc3Installer = {
             // Import the FDC3 Agent module using the module url defined for the provider implementation
             console.log(fdc3InstallerName + " - Importing FDC3 Agent module using url '" + providerDef.providerImplementation.moduleUrl + "'...");
             _context.next = 26;
-            return import( /* webpackIgnore: true */providerDef.providerImplementation.moduleUrl);
+            return import(providerDef.providerImplementation.moduleUrl);
           case 26:
             fdc3AgentModule = _context.sent;
             if (fdc3AgentModule) {
@@ -954,4 +954,4 @@ var fdc3Installer = {
 };
 
 export { InstallerConfigSource, fdc3Installer };
-//# sourceMappingURL=fdc3-installer-0.7.35.esm.js.map
+//# sourceMappingURL=fdc3-installer-0.7.36.esm.js.map

@@ -14,7 +14,7 @@ class Fdc3 {
   }
 
   async bootstrap(serviceUrl) {
-    // Note: This explicit 'bootstrap' method is not part of the FDC3 spec. It is included purely to demonstrate how an FDC3 Desktop Agent with such non-standard bootstrap mechanism could still be installed and bootstrapped by the fdc3-importer library
+    // Note: This explicit 'bootstrap' method is not part of the FDC3 spec. It is included purely to demonstrate how an FDC3 Desktop Agent with such non-standard bootstrap mechanism could still be installed and bootstrapped by the fdc3-installer library
     console.log(`Started bootstrapping ${fdc3AgentProviderName} v${fdc3AgentProviderVersion} in ${window.location.origin}...`);
     console.log(`Started connecting to service using url '${serviceUrl}'...`);
     // Note that the FDC3 spec states "The global window.fdc3 should only be available after the API is ready to use" and therefore the

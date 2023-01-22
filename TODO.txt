@@ -1,0 +1,45 @@
+TODO
+----
+x Create GitHub repo
+x Add README to repo
+x Copy library code across from React app and get it building as a library
+x Add library code to repo
+x Add demo agent implementations
+x Re-work React-based demo app as a vanilla JavaScript demo app
+x Add demo app
+x Add demo container
+
+ Update library code to remove Webpack magic comment in dynamic import() expression
+x Update demo app code to add uncomment about exceptions being swallowed by inline script type="module"
+ Publish library as an npm package
+ Test using published npm packagee in React-based demo app
+ Test installing published npm package on separate machine
+
+ [Get more TODOs from phone txt messages]
+ Update README to add FAQ question about unit tests
+ Proof-read README and update as necessary
+ Update README with instructions on how to run the demo app
+ Update README to explain with demo app, container and agents use JS / npm / dependency JS scripts instead of TS / React / Yarn
+
+ Investigate problem with exceptions being swallowed by inline script type="module" in demo app
+
+ Update README with screenshot of demo app
+ Update README with diagram showing problem
+ Update README with diagram showing how fdc3-installer works
+
+ Look at how to surface JS errors when using inline JS module code in the demo app
+ Fix issue with no error thrown on non-match of provider during discovery phase
+ Add additional validation in library's installAgent() method e.g. check that providerDef.providerImplementation is truthy
+ Look use use of the phrase 'FDC3 Agent' throughout the codebase
+ Test library with InstallerConfigSource.App
+ Test creation strategy executors with passing multiple args to constructor and methods
+
+ Consider updating the GitHub repo description to something longer
+ Look at what open source license should be used for the repo
+
+
+-----
+
+
+Removed Webpack magic comment (/* webpackIgnore: true */) from dynamic import expression() in fdc3Installer.installAgent() method. This was required when this code was originally built inside a CRA-based React application, but is redundant now that fdc3-installer is a standalone library built with TSDX.
+
