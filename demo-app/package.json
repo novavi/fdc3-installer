@@ -1,7 +1,8 @@
 {
   "name": "fdc3-installer-demo-app",
-  "description": "",
   "version": "1.0.0",
+  "description": "Demo of dynamic importer for FDC3 Desktop Agents.",
+  "keywords": ["fdc3", "agent"],
   "author": "Derek Novavi <derek.novavi@gmail.com>",
   "scripts": {
     "start:app": "node demo-app.js",

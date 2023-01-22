@@ -1,6 +1,8 @@
 {
   "name": "fdc3-installer",
   "version": "0.7.36",
+  "description": "Dynamic importer for FDC3 Desktop Agents.",
+  "keywords": ["fdc3", "agent"],
   "author": "Derek Novavi <derek.novavi@gmail.com>",
   "repository": {
     "type": "git",
