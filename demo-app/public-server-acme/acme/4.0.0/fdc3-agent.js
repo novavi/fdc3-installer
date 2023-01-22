@@ -80,36 +80,3 @@ else {
 
 // Export as default
 export default fdc3;
-
-/*
-class Fdc3 {
-  constructor(aaa, bbb) {
-    console.log('aaa');
-    console.log(aaa);
-    console.log('bbb');
-    console.log(bbb);
-    // window.fdc3 = this;
-  }
-
-  getInfo() {
-    return {
-      fdc3Version,
-      provider: fdc3AgentProviderName,
-      providerVersion: fdc3AgentProviderVersion
-    };
-  }
-}
-class Fdc3Factory {
-  create = 'ergesrgsg';
-
-  zzcreate(ccc, ddd) {
-    console.log('ccc');
-    console.log(ccc);
-    console.log('ddd');
-    console.log(ddd);
-    return new Fdc3(ccc, ddd)
-  }
-}
-// export default Fdc3;
-export default new Fdc3Factory();
-*/
