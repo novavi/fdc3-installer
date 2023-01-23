@@ -2,17 +2,40 @@
 
 ## Overview
 
-When an [FDC3](https://fdc3.finos.org)-enabled app runs in a desktop container, the app is fully agnostic of the [FDC3 Desktop Agent](https://fdc3.finos.org/docs/api/ref/DesktopAgent). This is because the agent is provided to the app by the desktop container - the app itself has no role in the selection or installation of the agent at all.
+`fdc3-installer` aims to provide a solution to the problem in browser-based environments of tight coupling between [FDC3](https://fdc3.finos.org)-enabled apps and [FDC3 Desktop Agents](https://fdc3.finos.org/docs/api/ref/DesktopAgent).
+
+The library supports multiple strategies for the areas of agent discovery, creation and bootstrapping - with the ability to easily add additional strategies based on any subsequent discussion / ideas.
+
+Ultimately the library decouples FDC3-enabled apps from any specific browser-based agent implementation - providing a mechanism for dynamically discovering and installing an agent within an app at runtime. This approach allows an app to run both in a desktop container (using the container's built-in agent) and also in a browser-based micro-frontend container (using a dynamically-installed agent) with zero code changes to the app.
+
+
+## Background
+
+When an FDC3-enabled app runs in a desktop container, the app is fully agnostic of the FDC3 Desktop Agent. This is because the agent is provided to the app by the desktop container - the app itself has no role in the selection or installation of the agent at all.
 
 The advent of browser-based FDC3 Desktop Agents presents a key challenge in terms of the selection and installation of an agent. Specifically, outside of browser extension technology it is *not* possible to inject *any* JavaScript code into another window on a cross-origin basis at runtime. Any reliance on browser extensions for mission-critical enterprise apps is generally problematic for companies (and their customers) from a risk perspective e.g. single point of failure, loss of control, and - most notably - InfoSec requirements.
 
 Up until now, this has typically led to an undesirable build-time tight-coupling between an FDC3-enabled app and the agent that it relies upon for interop - with the agent either being included in the built application's script bundles, or if not then still explicitly included in the application's host page via a separate script tag. Although this tight coupling has the benefit of simplicity for browser-based app development, the important point to be aware of is that it breaks FDC3's spirit of openness i.e. the idea that apps should not be tied to a specific FDC3 Desktop Agent. This makes any such implementations non-compliant with the FDC3 standard at the current time (with the recommendation from the WG that they should not be promoted or used).
 
-This `fdc3-installer` library does not claim to have all the answers but is intended to provide a working implementation and demonstration of some of the options for a solution in this area. It is hoped that this will help get the discussion going within the FDC3 community about how we can best overcome the tight-coupling problem for browser-based FDC3 Desktop Agent implementations. Ultimately, a standardized approach will be necessary in order for browser-based implementations to become compliant with the FDC3 standard.
-
-`fdc3-installer` supports multiple strategies for the areas of agent discovery, creation and bootstrapping - with the ability to easily add additional strategies based on any subsequent discussion / ideas. Ultimately it decouples FDC3-enabled apps from any specific browser-based agent implementation - providing a mechanism for dynamically discovering and installing an agent within an app at runtime. This approach allows an app to run both in a desktop container (using the container's built-in agent) and also in a browser-based micro-frontend container (using a dynamically-installed agent) with zero code changes to the app.
+The `fdc3-installer` library does not claim to have all the answers but is intended to provide a working implementation and demonstration of some of the options for a solution in this area. It is hoped that this will help get the discussion going within the FDC3 community about how we can best overcome the tight-coupling problem for browser-based FDC3 Desktop Agent implementations. Ultimately, a standardized approach will be necessary in order for browser-based implementations to become compliant with the FDC3 standard.
 
 **TODO - Add screenshot of demo app**
+
+
+## Installation
+
+To access the `fdc3-installer` API in your application, simply install the `fdc3-installer` npm package:
+
+```sh
+# npm
+npm install fdc3-installer
+
+# yarn
+yarn add fdc3-installer
+
+# pnpm
+pnpm install fdc3-installer
+```
 
 
 ## Usage
@@ -21,18 +44,22 @@ The `fdc3-installer` library can be used as follows:
 
 ```TypeScript
 import { fdc3Ready, getInfo, ImplementationMetadata } from '@finos/fdc3';
-import { fdc3Installer, InstallerConfigSource } from './lib';
+import { fdc3Installer, InstallerConfigSource } from 'fdc3-installer';
 
 // Discover, import, create and bootstrap an FDC3 Desktop Agent (using either InstallerConfigSource.Container or InstallerConfigSource.App)
-const { providerDefinition, fdc3 } = await fdc3Installer.installAgent(InstallerConfigSource.Containerp);
+const { providerDefinition, fdc3 } = await fdc3Installer.installAgent(InstallerConfigSource.Container);
 
 // Use FDC3 API methods as normal, based on whatever FDC3 Desktop Agent was installed above
 await fdc3Ready();
 const agentImpMetadata: ImplementationMetadata = await getInfo();
 
-// Note that as an alternative to using the  getInfo()  wrapper function above, we could also use  fdc3.getInfo()
+// Note that as an alternative to using the  getInfo()  wrapper function above, we could instead use  fdc3.getInfo()
 // This is because the  fdc3Installer.installAgent()  method actually returns the FDC3 Desktop Agent instance alongside the provider definition.
 ```
+
+Where possible, the recommended usage for `fdc3-installer` is to specify `InstallerConfigSource.Container` rather than `InstallerConfigSource.App` so that the installer config is simply provided by the micro-frontend container - rather than by the individual apps. Additionally, the ideal scenario would be to have that config specify a `ContainerExplicit` discovery strategy rather than one of the `AppXXX` strategies (see the rest of the README for details). Taking this approach would most closely align the behaviour of the browser-based environment with that provided by desktop containers (where the app also has no input on the provision of the FDC3 Desktop Agent).
+
+However, one limitation of the above recommendation is that it presupposes the existence of a micro-frontend container to launch and host individual applications. In the case of a browser-based agent that relies on native local cross-origin messaging under the hood (e.g. via [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) and [addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener) browser API methods) it's likely that a parent container would be needed in any case (otherwise the app windows would be unable to send/receive messages on a cross-origin basis). However, in the case of a cloud-based agent (i.e. relying on WebSockets) there is no requirement to have a container for orchestration / routing purposes or to spawn / host the individual app windows - and therefore a container may not be part of the structure at all. However, this type of *containerless* environment could still be supported by `fdc3-installer` using `InstallerConfigSource.App` for the installer config, along with one (but not *all* of) of the `AppXXX` discovery strategies.
 
 
 ## Key Features
@@ -111,12 +138,17 @@ Note that one potential issue with the the AppWindowName strategy might be the m
 | FactoryClass         | Similar to FactoryClassInstance above, but the key difference being before that work is done, the installer first needs to construct an instance of the factory class using new Fdc3AgentFactory(..), passing any constructor args that have been specified in the config. |
 | StaticFactoryClass   | From the installer's perspective in terms of what it needs to invoke, this is effectively the same as FactoryClassInstance. |
 
+Note that if in future there was a specific standard setting out how a browser-based FDC3 Desktop Agent must be provided (e.g. that it *must* be via a factory function, and never by any other mechanism) then it would be possible to remove the choice of creation strategies from this library altogether - because only a single mechanism would then be required. Unless or until there is such a standard though, it will be necessary to support multiple creation strategies (failure to do so would mean that some FDC3 Desktop Agents might be impossible to install dynamically at runtime using this library).
+
+
 ### Bootstrap Strategies Explanation
 
 | Bootstrap Strategy | Explanation |
 | ------------------ | ----------- |
 | Implicit           | The agent implicitly boostraps itself when it is loaded and created, and therefore the installer has no work to do. |
 | Explicit           | The agent requires an explicit boostrap, so the installer needs to invoke a (non-standard) fdc3.xxx(..) method, using the specific method name and any method args that have been specified in the config. |
+
+Note that - as was also the case with the creation strategies above - it would also be theoretically possible to remove the choice for bootstrap strategies from this library as well. However, this would only be possible if a specific standard was set out for how browser-based FDC3 Desktop Agents should be boostrapped.
 
 
 ## What's Included In This Repo?
@@ -128,18 +160,54 @@ This repo contains:
  - Sample browser-based app which uses `fdc3-installer` to install one of agents at runtime.
  - Simulated browser-based micro-frontend container. This is of course not a proper container - it is simply a bare-bones container to allow the sample app to be tested in the context of a container structure.
 
-Note that the library author is unable to include a full FDC3 Desktop Agent in this repo. The author has worked on one recently, but that implementation is proprietary to his employer.  However, the example agent implementations (which simply implement a `fdc3.getInfo()` method) should be enough to demonstrate usage of `fdc3-installer`, and to provide a template showing how a real agent implementation module can be exposed to `fdc3-installer`.
+Note that the library author is unable to include a full FDC3 Desktop Agent in this repo. Although the author has worked on one recently, that particular implementation is proprietary to his employer. However, the example agent implementations (which simply implement a `fdc3.getInfo()` method) should be enough to demonstrate usage of `fdc3-installer`, and to provide a template showing how a real agent implementation module can be exposed to `fdc3-installer`.
 
 
-## Instructions For Running The Sample App
+## Instructions For Running The Demo App
 
-**TODO**
+The demo consisters of a simple container, app and FDC3 Desktop Agents to show `fdc3-installer` in use. To install the demo, run the following commands:
+```sh
+cd demo-app
+npm i
+```
+
+Start the Acme FDC3 Desktop Agent in a terminal using the following commands:
+```sh
+npm run start:agent1
+```
+
+Start the Flugelbinder FDC3 Desktop Agents in a terminal using the following commands:
+```sh
+npm run start:agent2
+```
+
+Start the Simulated Micro-frontend Container in a terminal using the following commands:
+```sh
+npm run start:container
+```
+
+Start the App in a terminal using the following commands:
+```sh
+npm run start:app
+```
+
+Now simply point your browser to the following location to run the full demo:
+```
+http://localhost:4000
+```
+
+Note that this is a very limited demo, simply showing a *happy path* using a container-based installer config with a ContainerExplicit discovery strategy. It does not use a real container, or a real app, or real FDC3 Desktop Agents - but it uses broadly the same structure that can be used with real-world browser-based container / apps / agents.
+
+WARNING: Although the library author originally tested the library within a CRA-based React application, the demo app included in this repo inside the `public-app` folder was deliberately created using vanilla JavaScript instead of using a proper framework / bundler. This was done for simplicity's sake to avoid any requirement to build the app before running. However, this turns out to be a bit of a bad idea because it *appears* that any runtime errors that occur in the code within the `<script type="module">` block are not surfaced to the console. This applies to both errors throw by the inline code and any thrown by the library code that it invokes. Therefore in order to test the *unhappy path* and/or to play around with the library in any meaningful way it is **strongly recommended** that you install and run the `fdc3-installer` library inside your own application using a proper framework / script bundler of your choice.
+
+The library author will likely fix or replace this demo app in a future commit with one that surfaces any errors more reliably to better demonstrate the *unhappy path* as well as the *happy path* when using `fdc3-installer`.
 
 
 ## Outstanding Work
 
 - Implement remaining discovery strategies (AppWindowName, AppSessionStorage).
 - Implement remaining creation strategies (FactoryClass, StaticFactoryClass).
+- Improve the mechanism for obtaining the container origin, to allow it to be flexible enough to work for more than just the two simple scenarios currrently supported (see getContainerOrigin()).
 - Consider supporting arbitrary installer config urls, rather than limiting to a specific origin and filename.
 - Consider an additional creation strategy to support old-style regular JavaScript script files, as well as just the JavaScript module files that are already supported.
 - Consider supporting the optional functionality to install an agent into `window.fdc3` where that agent does not self-install (this would be based on a new property in the providerImplementation object in the provider directory.
@@ -249,7 +317,7 @@ Note also that if an inline `providerDirectory` array is defined within the inst
 "discoveryStrategy": {
   "type": "ContainerExplicit",
   "providerId": {
-    "name": "Flugelbinder FDC3 Agent",
+    "name": "Flugelbinder FDC3 Desktop Agent",
     "version": "7.0.0"
   },
   "validateProvider": true
@@ -265,14 +333,14 @@ Note also that if an inline `providerDirectory` array is defined within the inst
     {
       "origin": "http://localhost:4000",
       "providerId": {
-        "name": "Acme FDC3 Agent",
+        "name": "Acme FDC3 Desktop Agent",
         "version": "4.0.0"
       }
     },
     {
       "origin": "http://localhost:4001",
       "providerId": {
-        "name": "Flugelbinder FDC3 Agent",
+        "name": "Flugelbinder FDC3 Desktop Agent",
         "version": "6.0.0"
       }
     }
@@ -287,7 +355,7 @@ Note also that if an inline `providerDirectory` array is defined within the inst
 "discoveryStrategy": {
   "type": "AppExplicit",
   "providerId": {
-    "name": "Flugelbinder FDC3 Agent",
+    "name": "Flugelbinder FDC3 Desktop Agent",
     "version": "7.0.0"
   },
   "validateProvider": true
@@ -303,14 +371,14 @@ Note also that if an inline `providerDirectory` array is defined within the inst
     {
       "origin": "http://localhost:3000",
       "providerId": {
-        "name": "Acme FDC3 Agent",
+        "name": "Acme FDC3 Desktop Agent",
         "version": "4.0.0"
       }
     },
     {
       "origin": "http://localhost:3001",
       "providerId": {
-        "name": "Flugelbinder FDC3 Agent",
+        "name": "Flugelbinder FDC3 Desktop Agent",
         "version": "6.0.0"
       }
     }
@@ -329,14 +397,14 @@ Note also that if an inline `providerDirectory` array is defined within the inst
     {
       "paramValue": "b1dfb9b2-5657-4ab6-9a06-5534405fe502",
       "providerId": {
-        "name": "Acme FDC3 Agent",
+        "name": "Acme FDC3 Desktop Agent",
         "version": "4.0.0"
       }
     },
     {
       "paramValue": "c4d3408e-6b8b-4148-8f19-55a949e96adb",
       "providerId": {
-        "name": "Flugelbinder FDC3 Agent",
+        "name": "Flugelbinder FDC3 Desktop Agent",
         "version": "6.0.0"
       }
     }
@@ -475,7 +543,7 @@ Note also that if an inline `providerDirectory` array is defined within the inst
   "discoveryStrategy": {
     "type": "ContainerExplicit",
     "providerId": {
-      "name": "Flugelbinder FDC3 Agent",
+      "name": "Flugelbinder FDC3 Desktop Agent",
       "version": "7.0.0"
     },
     "validateProvider": true
@@ -483,7 +551,7 @@ Note also that if an inline `providerDirectory` array is defined within the inst
   "providerDirectory": [
     {
       "providerId": {
-        "name": "Acme FDC3 Agent",
+        "name": "Acme FDC3 Desktop Agent",
         "version": "4.0.0",
         "fdc3Version": "1.2"
       },
@@ -500,7 +568,7 @@ Note also that if an inline `providerDirectory` array is defined within the inst
     },
     {
       "providerId": {
-        "name": "Flugelbinder FDC3 Agent",
+        "name": "Flugelbinder FDC3 Desktop Agent",
         "version": "6.0.0",
         "fdc3Version": "1.2"
       },
@@ -521,7 +589,7 @@ Note also that if an inline `providerDirectory` array is defined within the inst
     },
     {
       "providerId": {
-        "name": "Flugelbinder FDC3 Agent",
+        "name": "Flugelbinder FDC3 Desktop Agent",
         "version": "7.0.0",
         "fdc3Version": "2.0"
       },
@@ -566,6 +634,10 @@ If your app only ever runs in the context of desktop container, then you do not 
 
 This library can be used if you want to run your app in a browser environment without tieing your app to a specific FDC3 Desktop Agent implementation.
 
+### Isn't there another installer library which already covers this functionality?
+
+The library author was not aware of another library which would handle the specific dynamic discovery and installation requirements to solve the problem (i.e. build-time tight-coupling between a browser-based FDC3-enabled app and an FDC3 Desktop Agent). If you are aware of any other workable solutions in this area, please share with the FDC3 Standard Working Group, as there are numerous people who would also be interested.
+
 ### My apps need to be able to run in both a browser and in a desktop container. If I use this library, will it inadvertently overwrite the built-in FDC3 Desktop Agent when my apps are run in a desktop container?
 
 No, it will leave any built-in FDC3 Desktop Agent untouched. The library explicitly checks upfront whether or not there is already an FDC3 Desktop Agent installed in the `window.fdc3` object. If an agent is already installed the library does not attempt any discovery or installation of an agent - it simply logs this information to the console. Therefore using this library will allow your app to run in both browser and desktop container environments with zero code changes.
@@ -602,9 +674,9 @@ Note that this decision could be reviewed in future if there was more guidance o
 
 Assuming the first call was successful, a subsequent call would not perform any discovery and installation actions because it will detect that FDC3 is already supported in the environment. All that the second call will do is to simply log this fact to the console.
 
-### Why have you missed such a really obvious, better discovery strategy for selecting an FDC3 Agent?
+### Why have you missed such a really obvious, better discovery strategy for selecting an agent?
 
-The strategies implemented are simply the ones that came to the author's mind when developing the library. It is fair to say that there are only a limited number of strategies that would work on a cross-origin basis (for example, an app has only *very* limited visibility of the micro-frontend container window that spawned it). However, ideas for (or implementations of) new and better discovery strategies also work within the practical constraints would be very welcome!
+The strategies implemented are simply the ones that came to the author's mind when initially developing the library. It is fair to say that there are only a limited number of strategies that would work on a cross-origin basis (for example, an app has only *very* limited visibility of the micro-frontend container window that spawned it). However, ideas for (or implementations of) new and/or better discovery strategies also work within the practical constraints would be very welcome!
 
 ### Why have you supported several different discovery strategies? Wouldn't it be better to standardise on a single one?
 
@@ -614,23 +686,27 @@ The problem is that in the real world, every organisation's browser-based apps a
 
 It's difficult to completely disagree with this statement. In particular, the Discovery Strategies Explanation section highlights some of the issues relating to the use of the AppWindowName strategy in practice.
 
-### My FDC3 Desktop Agent implementation is proprietary - if I used this library does it mean I have to make my implementation publicly available?
+### I am using a proprietary FDC3 Desktop Agent implementation - if I used this library does it mean I (or my vendor) have to make this implementation publicly available?
 
-No. Firstly, the library does not hold a provider directory containing definitions of agent implementations. Rather, the library expects the application or its browser-based container or its associated infrastructure to host a provider directory (either inline within the installer config via a `providerDirectory` array or externally specified via a `providerDirectoryUrl` properties). Secondly, the provider directory you use can specify `moduleUrl` properties the point to your own private infrastructure - that is to say, the a url set in `moduleUrl` does not need to be publicly accessible.
+No. Firstly, the library does not hold a provider directory containing definitions of agent implementations. Rather, the library expects the application or its browser-based container or its associated infrastructure to host a provider directory (either inline within the installer config via a `providerDirectory` array or externally specified via a `providerDirectoryUrl` properties). Secondly, the provider directory you use can specify `moduleUrl` properties to point to your own infrastructure - that is to say, the a url set in `moduleUrl` does not need to be publicly accessible.
 
 ### Where are FDC3 Desktop Agent implementations supposed to be hosted - on my application's environment or on the vendors that provide them?
 
-fdc3-installer is agnostic about this, so this decision can be based on (a) whichever environment can return an agent implementation's JavaScript file with valid CORS headers for the request made by the library on behalf of the app; and (b) other app-specific or organisation-specific factors e.g. related to latency, caching, concerns of loss of control / single point of failure, or otherwise.
+fdc3-installer is completely agnostic about this, so this decision can be based on (a) whichever environment can return an agent implementation's JavaScript file with valid CORS headers for the request made by the library on behalf of the app; and (b) other app-specific or organisation-specific factors e.g. related to latency, caching, concerns of loss of control / single point of failure, or otherwise.
 
 ### Why did you use the any type instead of the DesktopAgent interface for the FDC3 Desktop Agent returned from installAgent()?
 
 Simply because using the DesktopAgent interface would imply creating a dependency on the `@finos/fdc3` package. The fdc3-installer library is (currently) agnostic about which version of an FDC3 Desktop Agent that it imports at runtime. However, this area could definitely benefit from further thought.
 
-Note that if an installer was included directly in a future version of the `@finos/fdc3` package then this importer-to-fdc3-version dependency would be a non-issue. On the other handle, there is a potential benefit in having the installer library separate to the `@finos/fdc3` package, because this allows the installer to handle multiple FDC3 versions (which in turn allows the installer to be used easily in an app which is capable of running in environments which use different versions of an agent).
+Note that if an installer of some sort was included directly in a future version of the `@finos/fdc3` package then this installer-to-fdc3-version dependency would be a non-issue. On the other handle, there is a potential benefit in having the installer library separate to the `@finos/fdc3` package, because this allows the installer to handle multiple FDC3 versions (which in turn allows the installer to be used easily in an app which is capable of running in environments which use different versions of an agent / different versions of the FDC3 standard).
+
+### Where are the unit tests?
+
+Ouch. Yes - I know, I know. Some original unit tests fell by the wayside when the codebase was pulled out of the React application where it was originally developed into a separate library project - and since then the author has sort of driven a truck through parts of the codebase. Unit tests will definitely be reinstated and included in a future commit - but unfortunately there was simply not time to include that work in the first cut of the library.
 
 ### Why didn't you use an IoC container for the strategies?
 
-Having used [InversifyJS](https://inversify.io) on a previous TypeScript-based project, the author did consider this initially but it was felt the trade-off for this library was not worth it. In particular, the library only deals with simple functions for just three strategies. It does not deal with large numbers of classes or complex class hierarchies of the kind that are often managed via an IoC container.
+Having used [InversifyJS](https://inversify.io) on a previous TypeScript-based project, the author did consider this initially but it was felt the trade-off for fdc3-installer was not worth it. In particular, the library only deals with simple functions for just three strategies. It does not deal with large numbers of classes or complex class hierarchies of the kind that are often managed via an IoC container.
 
 The use of vanilla JavaScript [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) objects was deemed sufficient to support intial development, and should make the library it easy to grok for anyone casually perusing the codebase. However, this decision could be revisited if there were complelling reasons to do so.
 
@@ -638,13 +714,9 @@ The use of vanilla JavaScript [Map](https://developer.mozilla.org/en-US/docs/Web
 
 Not yet, but it would certinaly be a good idea to create JSON Schemas for these items. Even if such schemas were not used at runtime (trade-offs with more specific error messages and smaller bundle size when implementing checking in the TypeScript code) there would still be a clear benefit to have schemas available. In particular, schemas could be invaluable from a DevOps perspective in supporting the ability of CI/CD processes to ensure that invalid installer config files cannot deployed.
 
-### Why did you call the library fdc3-installer?
-
-Because the library's sole purpose is to install an FDC3 Desktop Agent. For what it's worth the author not completely sold on the name either. The library actually discovers, downloads, creates, bootstraps and validates an agent - and as it happens one part of the installation process (assigning to the `window.fdc3` object) is actually undertaken by the agent implementations themselves.
-
 ### It feels like there might almost be more lines in this README than there are in the source code. Why is this?
 
-You might have a point. The problem space that this library attempts to solve is relatively narrow, and should not require a large body of code to implement. By contrast, the decisions around the design of the library, the details of how it can be used, and the thoughts around the possibility of a future standardized approach to this problem does however require more words.
+You might have a point. The problem space that this library attempts to solve is relatively narrow, and should not require a large body of code to implement. By contrast, the design decisions and the descriptions and examples of how to use the library do however require some explaining.
 
 ### Are browser-based FDC3 Desktop Agents like Judgment Day in the Terminator franchise i.e. are they inevitable?
 
@@ -652,13 +724,13 @@ Maybe. It seems certain that there is demand for using FDC3 in browser-based env
 
 As the author understands it, there are some outstanding issues and concerns that need to be addressed before the FDC3 Standard WG will consider browser-based FDC3 Desktop Agent implementations compliant with the FDC3 standard (meaning compliant in principle from an architectural standpoint; whether a specific implementation is fully compliant with a given version of the standard is another matter). It is hoped that this library might be part of the ongoing dialogue and process which starts to resolve those issues and concerns.
 
-### What are Acme FDC3 Agent and Flugelbinder FDC3 Agent?
+### What are Acme FDC3 Desktop Agent and Flugelbinder FDC3 Desktop Agent?
 
-These are obviously fictional, as the names Acme and Flugelbinder would suggest. They were used purely as a mechanism to provide a concrete demonstration the fdc3-installer library running inside an app in a browser and importing example agent implementations. This approach seemed far more valuable than expecting people to look at this in an abstract sense by eyeballing a bunch of unit tests that only exist at the library level.
+These are of course fictional implementations, as the names Acme and Flugelbinder would suggest. They were used purely as a mechanism to provide a concrete demonstration the fdc3-installer library running inside an app in a browser and importing example agent implementations. This approach seemed far more valuable than expecting people to look at this in an abstract sense by eyeballing a bunch of unit tests that only exist at the library level.
 
 ### But I heard that there really is a Flugelbinder FDC3 Desktop Agent implementation
 
-It feels like your being facetious. But you never know - there might just be a real [Flugelbinder](https://alexaanswers.amazon.com/question/BLTc2S4rel8dGzSA95m4a) out there somewhere by the time you're reading this. Charlie Brooker stopped writing TVGoHome when his absurd satirical creations became a reality. I might be similarly inclined to discontinue using ridiculous names from 1980s movies for dummy FDC3 Desktop Agents if someone actually built a real agent and named it after a fictitious word like Flugelbinder.
+It feels like you're being facetious. But you never know - there might just be a real [Flugelbinder](https://alexaanswers.amazon.com/question/BLTc2S4rel8dGzSA95m4a) out there somewhere by the time you're reading this. Charlie Brooker stopped writing TVGoHome when his absurd satirical creations became a reality. I might be similarly inclined to discontinue using ridiculous names from 1980s movies for dummy FDC3 Desktop Agents if someone actually built a real agent and named it after a fictitious word like Flugelbinder.
 
 ### Does any of this have anything to do with blockchain or ChatGPT?
 

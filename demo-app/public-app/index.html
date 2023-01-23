@@ -25,7 +25,8 @@
       // Uncomment the below code block to test how fdc3Installer.installAgent() behaves when there is already an FDC3 Desktop Agent
       // preinstalled in window.fdc3 in the environment.
       //
-      /*const desktopContainerFdc3 = {
+      /*
+      const desktopContainerFdc3 = {
         getInfo: () => {
           return new Promise((resolve, reject) => {
             resolve({ fdc3Version: '1.2', provider: 'Some simulated desktop container FDC3 Desktop Agent', providerVersion: '10.0' });
@@ -36,16 +37,16 @@
         value: desktopContainerFdc3,
         configurable: false,
         writable: false
-      });*/
+      });
+      */
     </script>
     <script type="module">
       // Important: Within this vanilla <script type="module"> block, any errors thrown either by the inline code or by the library
       // code are not being reliably surfaced. Therefore in order to test the *unhappy* path it is strongly advised that you run the
       // fdc3-installer library and some code along the lines of the below inside a proper application build using a script bundler
       // (and ideally using TypeScript rather than just JavaScript) as per the 'Usage' section of the README.
-
       import { fdc3Ready, getInfo } from './scripts/fdc3-2.0.0-beta.5.esm.js';
-      import { fdc3Installer, InstallerConfigSource } from './scripts/fdc3-installer-0.7.36.esm.js';
+      import { fdc3Installer, InstallerConfigSource } from './scripts/fdc3-installer-0.7.37.esm.js';
 
       // Get info about fdc3-installer
       const installerMetadata = await fdc3Installer.getInfo();

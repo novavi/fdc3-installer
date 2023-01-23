@@ -8,38 +8,34 @@ x Add demo agent implementations
 x Re-work React-based demo app as a vanilla JavaScript demo app
 x Add demo app
 x Add demo container
-
- Update library code to remove Webpack magic comment in dynamic import() expression
+x Update library code to remove Webpack magic comment in dynamic import() expression
 x Update demo app code to add uncomment about exceptions being swallowed by inline script type="module"
- Publish library as an npm package
- Test using published npm packagee in React-based demo app
- Test installing published npm package on separate machine
-
- [Get more TODOs from phone txt messages]
- Update README to add FAQ question about unit tests
- Proof-read README and update as necessary
- Update README with instructions on how to run the demo app
- Update README to explain with demo app, container and agents use JS / npm / dependency JS scripts instead of TS / React / Yarn
-
- Investigate problem with exceptions being swallowed by inline script type="module" in demo app
+x Publish library as an npm package
+x Test installing and using published npm package in React-based demo app
+x Test installing published npm package on separate machine
+x Update library code to reinstate Webpack magic comment in dynamic import() expression
+x Update README with instructions on how to run the demo app
+x Update README to explain about demo app and recommendation for how to play around with it
+x Update README to split Overview into Overview and Background
+x Update README to recommend container over app for config source and discovery strategy
 
  Update README with screenshot of demo app
- Update README with diagram showing problem
+
+ Proof-read README and update as necessary
+ Add new section to README - 'Steps to replace hard-coded agent with use of fdc3-installer'
+ Add to FAQ - How does provider version matching work in the discovery phase?
+ Update README with diagram showing the overall problem that the library is trying to solve
  Update README with diagram showing how fdc3-installer works
 
- Look at how to surface JS errors when using inline JS module code in the demo app
- Fix issue with no error thrown on non-match of provider during discovery phase
+ Investigate problem with JS errors being swallowed by inline script type="module" code in demo app - either fix this, or convert demo app to use a framework/bundler which avoids this problem
+ Fix issue with apparently no error thrown on non-match of provider during discovery phase (actually this is almost certainly just because of the script type="module" issue above)
  Add additional validation in library's installAgent() method e.g. check that providerDef.providerImplementation is truthy
- Look use use of the phrase 'FDC3 Agent' throughout the codebase
- Test library with InstallerConfigSource.App
- Test creation strategy executors with passing multiple args to constructor and methods
+ Review use of the phrase 'FDC3 Agent' throughout the codebase
+ Test library again with InstallerConfigSource.App
+ Test creation strategy executors again with passing multiple args to function / constructor / methods
 
  Consider updating the GitHub repo description to something longer
  Look at what open source license should be used for the repo
 
-
------
-
-
-Removed Webpack magic comment (/* webpackIgnore: true */) from dynamic import expression() in fdc3Installer.installAgent() method. This was required when this code was originally built inside a CRA-based React application, but is redundant now that fdc3-installer is a standalone library built with TSDX.
-
+ Consider the issue of dynamic (rather than just static) function / constructor method args
+ [See 'Outstanding Work' section of README for further TODO items]

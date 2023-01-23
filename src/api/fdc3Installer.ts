@@ -58,7 +58,7 @@ export const fdc3Installer: DesktopAgentInstaller = {
         providerDef = providerDefs[0];
         // Import the FDC3 Agent module using the module url defined for the provider implementation
         console.log(`${fdc3InstallerName} - Importing FDC3 Agent module using url '${providerDef.providerImplementation.moduleUrl}'...`);
-        const fdc3AgentModule = await import(providerDef.providerImplementation.moduleUrl);
+        const fdc3AgentModule = await import(/* webpackIgnore: true */providerDef.providerImplementation.moduleUrl);
         if (!fdc3AgentModule) {
           throw new Error(`Failure obtaining module from FDC3 Agent at url '${providerDef.providerImplementation.moduleUrl}'`);
         }
