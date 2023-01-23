@@ -19,7 +19,7 @@ Up until now, this has typically led to an undesirable build-time tight-coupling
 
 The `fdc3-installer` library does not claim to have all the answers but is intended to provide a working implementation and demonstration of some of the options for a solution in this area. It is hoped that this will help get the discussion going within the FDC3 community about how we can best overcome the tight-coupling problem for browser-based FDC3 Desktop Agent implementations. Ultimately, a standardized approach will be necessary in order for browser-based implementations to become compliant with the FDC3 standard.
 
-**TODO - Add screenshot of demo app**
+![Demo app screenshot](./demo-app-screenshot.png)
 
 
 ## Installation
