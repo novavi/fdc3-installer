@@ -198,9 +198,9 @@ http://localhost:4000
 
 Note that this is a very limited demo, simply showing a *happy path* using a container-based installer config with a ContainerExplicit discovery strategy. It does not use a real container, or a real app, or real FDC3 Desktop Agents - but it uses broadly the same structure that can be used with real-world browser-based container / apps / agents.
 
-WARNING: Although the library author originally tested the library within a CRA-based React application, the demo app included in this repo inside the `public-app` folder was deliberately created using vanilla JavaScript instead of using a proper framework / bundler. This was done for simplicity's sake to avoid any requirement to build the app before running. However, this turns out to be a bit of a bad idea because it *appears* that any runtime errors that occur in the code within the `<script type="module">` block are not surfaced to the console. This applies to both errors throw by the inline code and any thrown by the library code that it invokes. Therefore in order to test the *unhappy path* and/or to play around with the library in any meaningful way it is **strongly recommended** that you install and run the `fdc3-installer` library inside your own application using a proper framework / script bundler of your choice.
+The demo app included in this repo inside the `public-app` folder was deliberately created using vanilla JavaScript instead of using a proper framework / bundler. This was done for simplicity's sake to avoid any requirement to build the app before running.
 
-The library author will likely fix or replace this demo app in a future commit with one that surfaces any errors more reliably to better demonstrate the *unhappy path* as well as the *happy path* when using `fdc3-installer`.
+However, you can of course install and run the `fdc3-installer` library inside your own application using a proper framework / script bundler of your choice (see 'Installation' and 'Usage' sections above for details). To understand the range of options supported, it is recommended to play around with different strategies in an installer config and to also test out the *unhappy path*.
 
 
 ## Outstanding Work
@@ -685,6 +685,12 @@ The problem is that in the real world, every organisation's browser-based apps a
 ### I think some of these discovery strategies are bad and should be removed.
 
 It's difficult to completely disagree with this statement. In particular, the Discovery Strategies Explanation section highlights some of the issues relating to the use of the AppWindowName strategy in practice.
+
+### The number of strategies supported make this library very flexible, but are there perhaps too many strategies?
+
+This is a perfectly valid argument because it's true that supporting numerous strategies adds a certain degree of complexity from the perspective of both the library consumer and library author. And it's also true that complexity can hinder adoption - which would obviously be a bad thing. If in future there was a specific standard setting out how a browser-based FDC3 Desktop Agent *must* be provided and bootstrapped, there would be plenty of scope for simplification in the library in those areas. However, note that any standards in this area would need to be part of a future version of the FDC3 spec (and would therefore require that spec to extend further into the area of implementation details, rather than focusing almost exclusively on the API itself).
+
+In terms of the discovery strategies, at this stage ideas for additional strategies would actually be encouraged though. This is because the library is partly aimed at providing a framework for trying out different options - the idea being that in discussion in the FDC3 community, it might subsequently be possible to settle on a sensible finite set of strategies which could be recommended for different use cases.
 
 ### I am using a proprietary FDC3 Desktop Agent implementation - if I used this library does it mean I (or my vendor) have to make this implementation publicly available?
 
