@@ -208,6 +208,13 @@ However, you can of course install and run the `fdc3-installer` library inside y
 - Implement remaining discovery strategies (AppWindowName, AppSessionStorage).
 - Implement remaining creation strategies (FactoryClass, StaticFactoryClass).
 - Improve the mechanism for obtaining the container origin, to allow it to be flexible enough to work for more than just the two simple scenarios currrently supported (see getContainerOrigin()).
+- Investigate and address security considerations for browser-based importer libraries and for browser-based FDC3 Desktop Agents. Some of these are listed here, but this is certainly not an exhaustive list:
+  - Firstly, it is worth noting that import() is a function-like expression but not actually a function. This means that it is part of that very exclusive club of things in JavaScript (like window.location) that *cannot* be monkey patched at runtime by a XSS attack.
+  - Since monkey patching is allowed on almost everything in JavaScript (including the native browser APIs) there are a number of possible XSS attack vectors that could be used to compromise an agent ranging from the APIs an agent relies upon (e.g. postMessage, addEventListener or WebSocket APIs) to the installer library itself (e.g. even though import() cannot be patched to download malicious code from a different site, the installer API could be patched to use a different moduleName argument for the import() expression).
+   not only could a browser-based FDC3 Desktop Agent's functionality
+  - It's worth noting that with some exceptions (FDC3 Sail being one) even the FDC3 Desktop Agents provided by desktop containers are generally not immune from XSS attacks on the FDC3-enabled apps that rely on them. In particular, the `window.fdc3` object can routinely be monkey patched at runtime. The FDC3 spec currently does not currently recommend or require agent implementers to freeze the `fdc3` object to prevent its methods being overwritten at runtime, or to make the `fdc3` property of the `window` non-configurable / non-writable to prevent the whole object being reassigned at runtime.
+  - The affect of Content Security Policy on the use of the import() expression - this **absolutely requires further invetigation**.
+  - The impact of using a dynamic import() expression on the perception that the installer library can be trusted e.g. what will services aiming to provide information about npm package security vulnerabilities (e.g. Mend, formerly WhiteSource) report about the installer library? This also **absolutely requires further invetigation**.
 - Consider supporting arbitrary installer config urls, rather than limiting to a specific origin and filename.
 - Consider an additional creation strategy to support old-style regular JavaScript script files, as well as just the JavaScript module files that are already supported.
 - Consider supporting the optional functionality to install an agent into `window.fdc3` where that agent does not self-install (this would be based on a new property in the providerImplementation object in the provider directory.
@@ -646,6 +653,12 @@ No, it will leave any built-in FDC3 Desktop Agent untouched. The library explici
 
 The short answer is: customer demand. The more agnostic your app can be of its container, the easier it will be for you to support future requirements that might involve alternative containers. There are of course plenty of other cross-cutting concerns beyond interop where any app will typically require a level of awareness of its container. However, if your app is at least container-agnostic from an FDC3 perspective, this at least reduces the amount of subsequent rethinking that might otherwise be required in the area of interop.
 
+### What are the security considerations?
+
+This area certainly needs much more work - it was being looked at before publication of the library was brought forward in the interests of a current debate within the FDC3 community about standards for the provision of browser-based agents.
+
+See 'Outstanding Work' section for some initial further thoughts.
+
 ### Does fdc3-installer install a FDC3 Desktop Agent into window.fdc3?
 
 No, not at the moment. As per the Design Decisions, the installer will not install into `window.fdc3`. This installation is left to the agent implementation itself (when it gets loaded and created by the installer). The reasons for this are: (a) to avoid the potential conflict if both the agent implementation *and* the installer attempted to install into `window.fdc3`; and (b) to avoid dealing with issues around implicit/explicit agent bootstrapping and/or risking breaking `fdc3Ready()` behaviour.
@@ -698,7 +711,7 @@ No. Firstly, the library does not hold a provider directory containing definitio
 
 ### Where are FDC3 Desktop Agent implementations supposed to be hosted - on my application's environment or on the vendors that provide them?
 
-fdc3-installer is completely agnostic about this, so this decision can be based on (a) whichever environment can return an agent implementation's JavaScript file with valid CORS headers for the request made by the library on behalf of the app; and (b) other app-specific or organisation-specific factors e.g. related to latency, caching, concerns of loss of control / single point of failure, or otherwise.
+fdc3-installer is completely agnostic about this, so this decision can be based on (a) whichever environment can return an agent implementation's JavaScript file with valid CORS headers to allow the request to be made by the library on behalf of the app; and (b) security considerations (your application must be able to trust the agent implementation script); (c) other app-specific or organisation-specific factors e.g. related to latency, caching, concerns of loss of control / single point of failure, or otherwise.
 
 ### Why did you use the any type instead of the DesktopAgent interface for the FDC3 Desktop Agent returned from installAgent()?
 
