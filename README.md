@@ -76,6 +76,65 @@ The key features of this library for the purposes of browser-based FDC3-enabled 
 - Utilises an installer config file to facilitate discovery and installation of FDC3 Desktop Agent.
 
 
+## Use Case 1: FDC3 App Interop Using Hardcoded Agents
+
+### Preconditions
+
+- A number of browser-based FDC3 Desktop Agents are available, including:
+  - Agent A
+  - Agent B
+- Vendor 1 chooses to use Agent A and installs it inside its app.
+- Vendor 1 has never dealt with Agent B at all - and has no current plans to do so.
+
+### Workflow 1
+
+Company X has an in-house app which also uses **Agent A** - so they can **successfully** use FDC3 interop between Vendor App 1 and their in-house app.
+
+TODO - Add diagram here
+
+### Workflow 2
+
+Company Y has an in-house app which instead uses **Agent B** - and is therefore **unable** to use FDC3 interop with Vendor App 1.
+
+TODO - Add diagram here
+
+
+## Use Case 2: FDC3 App Interop Using Container-Based Discovery
+
+### Preconditions (in detail)
+
+- A number of browser-based FDC3 Desktop Agents are available, including:
+  - Agent A
+  - Agent B
+  - several others
+- Vendor 1 implements its app as follows:
+  - *does not* directly install any specific agent
+  - installs the `fdc3-installer` package
+  - adds a single-line import statement
+  - adds a single-line `fdc3Installer.installAgent(InstallerConfigSource.Container)` invocation
+  - *does not* need to create an `fdc3-installer-config.json` file
+- Company X implements its in-house app as follows:
+  - installs, imports and invokes `fdc3-installer` with `InstallerConfigSource.Container`
+  - adds an `fdc3-installer-config.json` file in the root of their browser-based container, configuring it with a `ContainerExplicit` discovery strategy that specifies Agent A
+- Company Y implements its in-house app as follows:
+  - installs, imports and invokes `fdc3-installer` with `InstallerConfigSource.Container`
+  - adds an `fdc3-installer-config.json` file in the root of their browser-based container, configuring it with a `ContainerExplicit` discovery strategy that specifies Agent B
+
+### Workflow 1
+
+- Company X can successfully use FDC3 interop between Vendor App 1 and their in-house app using **Agent A**.
+- They are also free to switch over to use another agent (or even switch to using a desktop container) if they like, with zero FDC3-related code changes required to either Vendor App 1 or to their in-house app.
+
+TODO - Add diagram here
+
+### Workflow 2
+
+- Company Y can successfully use FDC3 interop between Vendor App 1 and their in-house app using **Agent B**.
+- They are also free to switch over to use another agent (or even switch to using a desktop container) if they like, with zero FDC3-related code changes required to either Vendor App 1 or to their in-house app.
+
+TODO - Add diagram here
+
+
 ## Design Decisions
 
 - The installer should first check whether there is already an FDC3 Desktop Agent installed in the `window.fdc3` object. If an agent is already installed (e.g. because the app is running within a desktop container) then the library should simply log this information to the console and not undertake any further work. This will allow an app using the library to be run in either a desktop container or in a browser without any code changes to the app - and without any concerns about whether the library might inadvertently overwrite an existing agent.
@@ -98,7 +157,7 @@ The phases of the installation process executed by the library's `installAgent()
 
 - Load the installer config.
   - file is JSON format and must be named `fdc3-installer-config.json`.
-  - config will be loaded from root of either from the container origin or the app origin, depending on whether InstallerConfigSource.Container or InstallerConfigSource.App is passed as an argument to the `installAgent()` method.
+  - config will be loaded from the root of either the container origin or the app origin, depending on whether InstallerConfigSource.Container or InstallerConfigSource.App is passed as an argument to the `installAgent()` method.
   - if config is loaded from the container origin - and assuming the container origin differs from the app origin - then the use of [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) for the load process means that the config file will need to be returned with valid [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) headers.
   - provider directory can be defined either inline within the config (`providerDirectory` property) or externally via the `providerDirectoryUrl` property.
 - Discover the agent (i.e. provider identifier) using the strategy from the config (multiple strategies supported).
@@ -123,9 +182,11 @@ The library has been deliberately structured in such a way as to make it easy to
 | AppOrigin          | Infer the agent from the app's origin by using a set of mappings. This allows multiple *deployments* of the same app on different subdomains to use their preferred agent. |
 | AppQuerystring     | Infer the agent from one of the app's querystring params by using a set of mappings. This allows a container to tell the app which agent to use by specifying a querystring on the app's url when launching the app in an iframe or an external window. |
 | AppWindowName      | Infer the agent by using the app's `window.name` property to get a string containing ordinal position values that have been projected through to the app window from the micro-frontend container that spawned it. This projection from container to app is possible by means of the one-time binding for an [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe)'s `name` attribute, a [window.open()](https://developer.mozilla.org/en-US/docs/Web/API/Window/open)'s `target` argument, or an [anchor](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a)'s `target` attribute. |
-| AppSessionStorage  | Infer the agent by reading the properties of an object from the app's [sessionStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage). This could potentially be used if sessionStorage was set during a previous setup step e.g. immediately after an SSO process. For example, an agent could theoretically be specified at runtime on a per-customer, a per-user or a per-entitlement basis. |
+| AppSessionStorage  | Infer the agent by reading the properties of an object from the app's [sessionStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage). This could potentially be used if sessionStorage was set during a previous app initialization step e.g. immediately after an SSO process. For example, an agent could theoretically be specified at runtime on a per-customer, a per-user or a per-entitlement basis. |
 
-Note that one potential issue with the the AppWindowName strategy might be the mechanics of an agent's `fdc3.open()` method. In particular, when that method was used to open a new app (or a new instance of an existing app) then it would need to ensure that the new app used the same agent as the app that opened it - otherwise it would render cross-app FDC3 interop impossible. The implication is that this particular discovery strategy could probably only be used in practice for a set of agent implementations which guaranteed to project the (same) required provider details through to all iframes, windows or tabs opened via `fdc3.open()`. Clearly, this would require a very specific assumption about how those agents implemented `fdc3.open()`, and would therefore imply that the strategy could not be used for *all* agents.
+One concern with the `AppQuerystring` strategy if used an a situation where individual apps can run in their own windows / tabs (as opposed to only running within iframes) is bookmarking. Specifically, the application would be *unable* to prevent the user from bookmarking the app's url - despite this being a bad idea because the url contained a querystring param value that effectively fixed the app to a specific FDC3 Desktop Agent. This might allow the bookmarked app to subsequently work in *some* situations (where the FDC3 Desktop Agent just happened to be appropriate) but the app would break in all other situations. This would result in a confusing user experience that would ultimately be blamed on the app in the first instance (rather than on the user bookmark operation).
+
+Note that one potential issue with the the `AppWindowName` strategy might be the mechanics of an agent's `fdc3.open()` method. In particular, when that method was used to open a new app (or a new instance of an existing app) then it would need to ensure that the new app used the same agent as the app that opened it - otherwise it would render cross-app FDC3 interop impossible. The implication is that this particular discovery strategy could probably only be used in practice for a set of agent implementations which guaranteed to project the (same) required provider details through to all iframes, windows or tabs opened via `fdc3.open()`. Clearly, this would require a very specific assumption about how those agents implemented `fdc3.open()`, and would therefore imply that the strategy could not be used for *all* agents.
 
 ### Creation Strategies Explanation
 
@@ -207,15 +268,21 @@ However, you can of course install and run the `fdc3-installer` library inside y
 
 - Implement remaining discovery strategies (AppWindowName, AppSessionStorage).
 - Implement remaining creation strategies (FactoryClass, StaticFactoryClass).
-- Improve the mechanism for obtaining the container origin, to allow it to be flexible enough to work for more than just the two simple scenarios currrently supported (see getContainerOrigin()).
+- Support a default for the bootstrapStrategy object in the installer config as it should not need specifying in order to default to `BootstrapStrategyType.Implicit`. (Could possibly consider a default for the creationStrategy object as well - `CreationStrategyType.FactoryFunction` could be a good choice but any default for creationStrategy could perhaps be contentious).
+- Improve the mechanism for discovering the container origin, to allow it to be flexible enough to work for more than just the two simple scenarios currrently supported (see `getContainerOrigin()`).
+- Investigate the problem of undesirable rewriting of [import()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) expressions at packaging-time by common JavaScript module bundlers, which can result in a broken agent installation process if not mitigated against. The `fdc3Installer.installAgent()` method deliberately includes a [Webpack Magic Comment](https://webpack.js.org/api/module-methods/#magic-comments) (`/* webpackIgnore: true */`) in its `import()` expression in order to force Webpack to disable dynamic import parsing (which Webpack normally performs to support chunking and lazy loading) when the library is used inside an application. If that Magic Comment had *not* been included, then although `fdc3-installer` would work in simple vanilla JavaScript applications, it would break when used in what is probably the most commonly used web application scaffolding and framework at the moment ([Create React App](https://create-react-app.dev)-based [React](https://reactjs.org) applications, which rely on Webpack for module bundling). But the question that now needs to be asked is: are there any other commonly-used JavaScript module bundlers which the installer library should also mitigate against?
 - Investigate and address security considerations for browser-based importer libraries and for browser-based FDC3 Desktop Agents. Some of these are listed here, but this is certainly not an exhaustive list:
-  - Firstly, it is worth noting that import() is a function-like expression but not actually a function. This means that it is part of that very exclusive club of things in JavaScript (like window.location) that *cannot* be monkey patched at runtime by a XSS attack.
+  - Firstly, it is worth noting that the native JavaScript import() expression is a function-like expression but not actually a function. This means that it is part of that very exclusive club of native APIs in JavaScript (like window.location) that *cannot* be monkey patched at runtime by a XSS attack.
   - Since monkey patching is allowed on almost everything in JavaScript (including the native browser APIs) there are a number of possible XSS attack vectors that could be used to compromise an agent ranging from the APIs an agent relies upon (e.g. postMessage, addEventListener or WebSocket APIs) to the installer library itself (e.g. even though import() cannot be patched to download malicious code from a different site, the installer API could be patched to use a different moduleName argument for the import() expression).
    not only could a browser-based FDC3 Desktop Agent's functionality
-  - It's worth noting that with some exceptions (FDC3 Sail being one) even the FDC3 Desktop Agents provided by desktop containers are generally not immune from XSS attacks on the FDC3-enabled apps that rely on them. In particular, the `window.fdc3` object can routinely be monkey patched at runtime. The FDC3 spec currently does not currently recommend or require agent implementers to freeze the `fdc3` object to prevent its methods being overwritten at runtime, or to make the `fdc3` property of the `window` non-configurable / non-writable to prevent the whole object being reassigned at runtime.
-  - The affect of Content Security Policy on the use of the import() expression - this **absolutely requires further invetigation**.
+  - It should be borne in mind that with some exceptions (FDC3 Sail being one) even the FDC3 Desktop Agents provided by desktop containers are generally not immune from XSS attacks on the FDC3-enabled apps that rely on them. In particular, the `window.fdc3` object can routinely be monkey patched at runtime. The FDC3 spec currently does not currently recommend or require agent implementers to freeze the `fdc3` object to prevent its methods being overwritten at runtime, or to make the `fdc3` property of the `window` non-configurable / non-writable to prevent the whole object being reassigned at runtime.
+  - The affect of [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) on the use of the import() expression - this **absolutely requires further invetigation**.
   - The impact of using a dynamic import() expression on the perception that the installer library can be trusted e.g. what will services aiming to provide information about npm package security vulnerabilities (e.g. Mend, formerly WhiteSource) report about the installer library? This also **absolutely requires further invetigation**.
-- Consider supporting arbitrary installer config urls, rather than limiting to a specific origin and filename.
+- Consider supporting a new `InstallerConfigSource.Custom` option along with a second argument to the `fdc3Installer.installAgent()` method to allow arbitrary installer config urls, rather than just limiting to a specific origin and filename. This extension would:
+  - provide flexibility to place installer config files in other folder structures within the container or app
+  - support REST endpoints as well as just a specifically-named static JSON file
+  - allow an app to specify a container-based url in the case where the installer library could not easily locate it e.g. more complex window-spawning or iframe-nesting.
+  - but note that the potential downside of this greater flexibility is that it could increase the chances of different apps specifying the wrong url when dealing with a custom config source for a container
 - Consider an additional creation strategy to support old-style regular JavaScript script files, as well as just the JavaScript module files that are already supported.
 - Consider supporting the optional functionality to install an agent into `window.fdc3` where that agent does not self-install (this would be based on a new property in the providerImplementation object in the provider directory.
 - Fix problem where app fetching installer config from container level (as opposed to from app level) causes any relative url used for providerDirectoryUrl property to be relative to the app origin rather than the container origin. This seems wrong, so look at what we can do to improve this.
@@ -687,17 +754,25 @@ Note that this decision could be reviewed in future if there was more guidance o
 
 Assuming the first call was successful, a subsequent call would not perform any discovery and installation actions because it will detect that FDC3 is already supported in the environment. All that the second call will do is to simply log this fact to the console.
 
+### What is the relationship between the InstallerConfigSource and the container-based / app-based discovery strategies?
+
+If an app is running independently of a container then by definition it has to use `InstallerConfigSource.App`. By contrast, if an app is spawned from a container (e.g. in an iframe, external window or tab) then it is free to use either `InstallerConfigSource.Container` or `InstallerConfigSource.App` - that is to say, the the library can be configured to load `fdc3-installer-config.json` from the root of either the container origin or the app origin.
+
+Discovery strategies are effectively unrelated to the `InstallerConfigSource` value. So for either `InstallerConfigSource` value, an app can still use an app-based discovery strategy - and the only condition for using a container-based discovery strategy is that the app *must* have originally been spawned by a container (because a container-based strategy cannot execute if it cannot locate a container).
+
+On this basis, for app running inside a container, the choice of `InstallerConfigSource` is largely influenced by DevOps processes - and `InstallerConfigSource.Container` would be the recommended approach in order to avoid duplication / copying / proliferation of installer config files when deploying apps. If a container does *not* form part of the app ecosystem at all, then `InstallerConfigSource.App` *must* be always be used by the individual apps.
+
 ### Why have you missed such a really obvious, better discovery strategy for selecting an agent?
 
-The strategies implemented are simply the ones that came to the author's mind when initially developing the library. It is fair to say that there are only a limited number of strategies that would work on a cross-origin basis (for example, an app has only *very* limited visibility of the micro-frontend container window that spawned it). However, ideas for (or implementations of) new and/or better discovery strategies also work within the practical constraints would be very welcome!
+The strategies implemented are simply the ones that came to the author's mind when initially developing the library. It is fair to say that there are only a limited number of strategies that would work on a cross-origin basis (for example, an app has only *very* limited visibility of the micro-frontend container window that spawned it). However, ideas for (or implementations of) new and/or better discovery strategies that also work within the practical constraints would be very welcome!
 
 ### Why have you supported several different discovery strategies? Wouldn't it be better to standardise on a single one?
 
-The problem is that in the real world, every organisation's browser-based apps and containers can be structured slightly differently. Restricting the installer library to use only single discovery strategy would likely mean that it could not be used for a whole range of current real-world browser-based apps and containers. However, it is recognized that the concept of discovery strategies would greatly benefit from discussion within the wider FDC3 community.
+The problem is that in the real world, every organisation's browser-based apps and containers can be structured slightly differently. Restricting the installer library to use only single discovery strategy would likely mean that it could not be used for a whole range of current real-world browser-based apps and containers. However, it is recognized that the concept of discovery strategies would greatly benefit from discussion, narrowing and standardization within the wider FDC3 community.
 
 ### I think some of these discovery strategies are bad and should be removed.
 
-It's difficult to completely disagree with this statement. In particular, the Discovery Strategies Explanation section highlights some of the issues relating to the use of the AppWindowName strategy in practice.
+It's difficult to completely disagree with this statement. In particular, the 'Discovery Strategies Explanation' section highlights some of the issues relating to the use of the `AppQuerystring` and `AppWindowName` strategies in practice.
 
 ### The number of strategies supported make this library very flexible, but are there perhaps too many strategies?
 
