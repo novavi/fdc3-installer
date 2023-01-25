@@ -23,20 +23,23 @@ x Fix issue with apparently no error thrown on non-match of provider during disc
 x Update README with screenshot of demo app
 x Add new section to README - 'Use Case 1: FDC3 App Interop Using Hardcoded Agents'
 x Add new section to README - 'Use Case 2: FDC3 App Interop Using Container-Based Discovery'
+x Proof-read README and update as necessary
 
- Proof-read README and update as necessary
  Update README with diagrams for Use Case 1 and Use Case 2
- Update README with diagram showing how fdc3-installer works
 
- Update README to better explain the customer1.appvendor.com / customer2.appvendor.com example for the ContainerOrigin / AppOrigin discovery strategies
- Add to FAQ - How does provider version matching work in the discovery phase?
- Look at issue with errors being raised as promise rejections - perhaps these should really have be surfaced properly in the calling code even if an async IIFE had not been used?
+ Create deploy-to-demo-app Shell script or Node script to copy the built installer library across
  Add additional validation in library's installAgent() method e.g. check that providerDef.providerImplementation is truthy
+ Update README with diagram showing how fdc3-installer works e.g. showing the phases and the dependencies
+ Update README to better explain the customer1.appvendor.com / customer2.appvendor.com example for the ContainerOrigin / AppOrigin discovery strategies
+ Update README - consider adding a new 'Discovery Strategies Considered But Rejected' section
+ Update README - add to FAQ - How does provider version matching work in the discovery phase?
+ Look at issue with errors being raised as promise rejections - perhaps these should really have be surfaced properly in the calling code even if an async IIFE had not been used?
  Review use of the phrase 'FDC3 Agent' throughout the codebase
  Test library again with InstallerConfigSource.App
+ Test library with an app window spawned from the container, to confirm getContainerOrigin() functionality works as expected
  Test creation strategy executors again with passing multiple args to function / constructor / methods
 
- Look at what open source license should be used for the repo
-
  Consider the issue of dynamic (rather than just static) function / constructor method args
+ Add a license to the repo
+
  [See 'Outstanding Work' section of README for further TODO items]
