@@ -90,15 +90,59 @@ The key features of this library for the purposes of browser-based FDC3-enabled 
 
 ### Workflow 1
 
-Company X has an in-house app which also uses **Agent A** - so they can **successfully** use FDC3 interop between Vendor App 1 and their in-house app.
+Company X has an in-house app which also installs and uses **Agent A** - so they can **successfully** use FDC3 interop with Vendor 1 App.
 
-TODO - Add diagram here
+```mermaid
+C4Container
+    Boundary(mfeContainer, "Company X Micro-Frontend Container", "Window - with no FDC3 DA provided") {
+        Boundary(inHouseApp, "Company X In-house App", "Window - with bundled/hardcoded FDC3 DA *A*") {
+            Component(inHouseAppFdc3DaA, "FDC3 Desktop Agent *A*", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+            Component(inHouseAppCode, "Company X In-house App Code", , $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+        }
+
+        Boundary(vendorApp, "Vendor 1 App", "Window - with bundled/hardcoded FDC3 DA *A*") {
+            Component(vendorAppFdc3DaA, "FDC3 Desktop Agent *A*", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+            Component(vendorAppCode, "Vendor 1 App Code", , $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+        }
+    }
+
+    BiRel(inHouseAppFdc3DaA, inHouseAppCode, "FDC3 API")
+    UpdateRelStyle(inHouseAppFdc3DaA, inHouseAppCode, $offsetX="15")
+
+    BiRel(vendorAppFdc3DaA, vendorAppCode, "FDC3 API")
+    UpdateRelStyle(vendorAppFdc3DaA, vendorAppCode, $offsetX="15")
+
+    BiRel(inHouseAppFdc3DaA, vendorAppFdc3DaA, "", "FDC3 Interop")
+    UpdateRelStyle(inHouseAppFdc3DaA, vendorAppFdc3DaA, $offsetX="-35")
+```
 
 ### Workflow 2
 
-Company Y has an in-house app which instead uses **Agent B** - and is therefore **unable** to use FDC3 interop with Vendor App 1.
+Company Y has an in-house app which instead installs and uses **Agent B** - and is therefore **unable** to use FDC3 interop with Vendor 1 App.
 
-TODO - Add diagram here
+```mermaid
+C4Container
+    Boundary(mfeContainer, "Company Y Micro-Frontend Container", "Window - with no FDC3 DA provided") {
+        Boundary(inHouseApp, "Company Y In-house App", "Window - with bundled/hardcoded FDC3 DA *B*") {
+            Component(inHouseAppFdc3DaB, "FDC3 Desktop Agent *B*", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+            Component(inHouseAppCode, "Company Y In-house App Code", , $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+        }
+
+        Boundary(vendorApp, "Vendor 1 App", "Window - with bundled/hardcoded FDC3 DA *A*") {
+            Component(vendorAppFdc3DaA, "FDC3 Desktop Agent *A*", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+            Component(vendorAppCode, "Vendor 1 App Code", , $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+        }
+    }
+
+    BiRel(inHouseAppFdc3DaB, inHouseAppCode, "FDC3 API")
+    UpdateRelStyle(inHouseAppFdc3DaB, inHouseAppCode, $offsetX="15")
+
+    BiRel(vendorAppFdc3DaA, vendorAppCode, "FDC3 API")
+    UpdateRelStyle(vendorAppFdc3DaA, vendorAppCode, $offsetX="15")
+
+    BiRel(inHouseAppFdc3DaB, vendorAppFdc3DaA, "X", "Interop *FAILS*")
+    UpdateRelStyle(inHouseAppFdc3DaB, vendorAppFdc3DaA, $textColor="red", $lineColor="red", $offsetX="-40")
+```
 
 
 ## Use Case 2: FDC3 App Interop (Using Container-Based Discovery)
@@ -124,17 +168,93 @@ TODO - Add diagram here
 
 ### Workflow 1
 
-- Company X can successfully use FDC3 interop between Vendor App 1 and their in-house app using **Agent A**.
-- They are also free to switch over to use another agent (or even switch to using a desktop container) if they like, with zero FDC3-related code changes required to either Vendor App 1 or to their in-house app.
+- Company X can **successfully** use FDC3 interop between their in-house app and Vendor 1 App using **Agent A**.
+- They are also free to switch over to use another agent (or even switch to using a desktop container) if they like, with zero FDC3-related code changes required to either their in-house app or to Vendor 1 App.
 
-TODO - Add diagram here
+```mermaid
+C4Container
+    Boundary(mfeContainer, "Company X Micro-Frontend Container", "Window - with no FDC3 DA provided") {
+        Component(fdc3InstallerConfig, "FDC3 Installer Config", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . [Specifies discovery strategy which resolves to FDC3 DA *A*] . . . . . . . . . . . . . . . . . . . . . . . . .")
+
+        Boundary(inHouseApp, "Company X In-house App", "Window - with dynamically-installed FDC3 DA *A*") {
+            Component(inHouseAppFdc3Installer, "FDC3 Installer Library", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+            Component_Ext(inHouseAppFdc3DaA, "FDC3 Desktop Agent *A*", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+            Component(inHouseAppCode, "Company X In-house App Code", , $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+        }
+
+        Boundary(vendorApp, "Vendor 1 App", "Window - with dynamically-installed FDC3 DA *A*") {
+            Component(vendorAppFdc3Installer, "FDC3 Installer Library", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+            Component_Ext(vendorAppFdc3DaA, "FDC3 Desktop Agent *A*", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+            Component(vendorAppCode, "Vendor 1 App Code", , $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+        }
+    }
+
+    BiRel(fdc3InstallerConfig, inHouseAppFdc3Installer, "Retrieve config")
+    UpdateRelStyle(fdc3InstallerConfig, inHouseAppFdc3Installer, $offsetX="-70", $offsetY="-45")
+
+    BiRel(fdc3InstallerConfig, vendorAppFdc3Installer, "Retrieve config")
+    UpdateRelStyle(fdc3InstallerConfig, vendorAppFdc3Installer, $offsetX="-15", $offsetY="-45")
+
+    Rel(inHouseAppFdc3Installer, inHouseAppFdc3DaA, "Dynamic install")
+    UpdateRelStyle(inHouseAppFdc3Installer, inHouseAppFdc3DaA, $offsetX="15")
+
+    BiRel(inHouseAppFdc3DaA, inHouseAppCode, "FDC3 API")
+    UpdateRelStyle(inHouseAppFdc3DaA, inHouseAppCode, $offsetX="15")
+
+    Rel(vendorAppFdc3Installer, vendorAppFdc3DaA, "Dynamic install")
+    UpdateRelStyle(vendorAppFdc3Installer, vendorAppFdc3DaA, $offsetX="15")
+
+    BiRel(vendorAppFdc3DaA, vendorAppCode, "FDC3 API")
+    UpdateRelStyle(vendorAppFdc3DaA, vendorAppCode, $offsetX="15")
+
+    BiRel(inHouseAppFdc3DaA, vendorAppFdc3DaA, "", "FDC3 Interop")
+    UpdateRelStyle(inHouseAppFdc3DaA, vendorAppFdc3DaA, $offsetX="-35")
+```
 
 ### Workflow 2
 
-- Company Y can successfully use FDC3 interop between Vendor App 1 and their in-house app using **Agent B**.
-- They are also free to switch over to use another agent (or even switch to using a desktop container) if they like, with zero FDC3-related code changes required to either Vendor App 1 or to their in-house app.
+- Company Y can **successfully** use FDC3 interop between their in-house app and Vendor 1 App using **Agent B**.
+- They are also free to switch over to use another agent (or even switch to using a desktop container) if they like, with zero FDC3-related code changes required to either their in-house app or to Vendor 1 App.
 
-TODO - Add diagram here
+```mermaid
+C4Container
+    Boundary(mfeContainer, "Company Y Micro-Frontend Container", "Window - with no FDC3 DA provided") {
+        Component(fdc3InstallerConfig, "FDC3 Installer Config", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . [Specifies discovery strategy which resolves to FDC3 DA *B*] . . . . . . . . . . . . . . . . . . . . . . . . .")
+
+        Boundary(inHouseApp, "Company Y In-house App", "Window - with dynamically-installed FDC3 DA *B*") {
+            Component(inHouseAppFdc3Installer, "FDC3 Installer Library", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+            Component_Ext(inHouseAppFdc3DaB, "FDC3 Desktop Agent *B*", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+            Component(inHouseAppCode, "Company Y In-house App Code", , $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+        }
+
+        Boundary(vendorApp, "Vendor 1 App", "Window - with dynamically-installed FDC3 DA *B*") {
+            Component(vendorAppFdc3Installer, "FDC3 Installer Library", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+            Component_Ext(vendorAppFdc3DaB, "FDC3 Desktop Agent *B*", "", $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+            Component(vendorAppCode, "Vendor 1 App Code", , $descr=". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+        }
+    }
+
+    BiRel(fdc3InstallerConfig, inHouseAppFdc3Installer, "Retrieve config")
+    UpdateRelStyle(fdc3InstallerConfig, inHouseAppFdc3Installer, $offsetX="-70", $offsetY="-45")
+
+    BiRel(fdc3InstallerConfig, vendorAppFdc3Installer, "Retrieve config")
+    UpdateRelStyle(fdc3InstallerConfig, vendorAppFdc3Installer, $offsetX="-15", $offsetY="-45")
+
+    Rel(inHouseAppFdc3Installer, inHouseAppFdc3DaB, "Dynamic install")
+    UpdateRelStyle(inHouseAppFdc3Installer, inHouseAppFdc3DaB, $offsetX="15")
+
+    BiRel(inHouseAppFdc3DaB, inHouseAppCode, "FDC3 API")
+    UpdateRelStyle(inHouseAppFdc3DaB, inHouseAppCode, $offsetX="15")
+
+    Rel(vendorAppFdc3Installer, vendorAppFdc3DaB, "Dynamic install")
+    UpdateRelStyle(vendorAppFdc3Installer, vendorAppFdc3DaB, $offsetX="15")
+
+    BiRel(vendorAppFdc3DaB, vendorAppCode, "FDC3 API")
+    UpdateRelStyle(vendorAppFdc3DaB, vendorAppCode, $offsetX="15")
+
+    BiRel(inHouseAppFdc3DaB, vendorAppFdc3DaB, "", "FDC3 Interop")
+    UpdateRelStyle(inHouseAppFdc3DaB, vendorAppFdc3DaB, $offsetX="-35")
+```
 
 
 ## Design Decisions
@@ -165,7 +285,7 @@ The phases of the installation process executed by the library's `installAgent()
   - provider directory can be defined either inline within the config (`providerDirectory` property) or externally via the `providerDirectoryUrl` property.
 - Discover the agent (i.e. provider identifier) using the strategy from the config (multiple strategies supported).
 - Retrieve the provider definition from the provider directory using the discovered provider identifier.
-- Dynamically import the agent implementation (i.e. exported module object). The use of a dynamic [import()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) expression means that in most cases the agent implementation's JavaScript file will need to be returned with valid [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) headers.
+- Dynamically import the agent implementation (i.e. exported module object). The use of a dynamic [import()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) expression means that if the agent implementation's JavaScript file is hosted on a different origin from the app origin then the file will need to be returned with valid [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) headers.
 - Create the agent using the strategy from the config (multiple strategies supported).
 - Bootstrap the agent using the strategy from the config (implicit or explicit strategy).
 - Validate the agent that has been imported/installed against the provider definition (this validation is optional, and is only performed if the `validateProvider` property is set to `true` in the `discoveryStrategy` section of the installer config).
@@ -272,7 +392,7 @@ However, you can of course install and run the `fdc3-installer` library inside y
 - Implement remaining discovery strategies (`AppWindowName`, `AppSessionStorage`).
 - Implement remaining creation strategies (`FactoryClass`, `StaticFactoryClass`).
 - Support a default for the bootstrapStrategy object in the installer config as it should not need specifying in order to default to `BootstrapStrategyType.Implicit`. Also default the `providerImplementation.exportedName` property to `default`. (Could possibly also consider a default for the creationStrategy object as well - `CreationStrategyType.FactoryFunction` might be a good choice but any default for creationStrategy could possibly be contentious).
-- Fix the problem where an app's installer instance fetches the installer config from container-level (as opposed to from app-level) and causes any relative url used for the `providerDirectoryUrl` property to be relative to the app origin rather than the container origin. This can *probably* be achieved simply by using `new URL(providerDirectoryUrl, window.location.href)` to generate the correct url to pass to the `fetch()` call.
+- Fix the problem where an app's installer instance fetches the installer config from container-level (as opposed to from app-level) and causes any relative url used for the `providerDirectoryUrl` property to be relative to the app origin rather than the container origin. This can *probably* be achieved simply by using something along the lines of `new URL(providerDirectoryUrl, containerOrAppInstallerConfigUrl)` to generate the correct url to pass to the `fetch()` call.
 - Make logging configurable by adding a config property for this under a new `settings` object in the root of the installer config. Also move the existing `validateProvider` property out of the `discoveryStrategy` object and into this new `settings` object.
 - Improve the mechanism for discovering the container origin, to allow it to be flexible enough to work for more than just the two simple scenarios currrently supported (see `getContainerOrigin()` function).
 - Investigate the problem of undesirable rewriting of [import()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) expressions at packaging-time by common JavaScript module bundlers, which can result in a broken agent installation process if not mitigated against. The `fdc3Installer.installAgent()` method deliberately includes a [Webpack Magic Comment](https://webpack.js.org/api/module-methods/#magic-comments) (`/* webpackIgnore: true */`) in its `import()` expression in order to force Webpack to disable dynamic import parsing (which Webpack normally performs to support chunking and lazy loading) when the library is used inside an application. If that Magic Comment had *not* been included, then although `fdc3-installer` would work in simple vanilla JavaScript applications, it would break when used in what is probably the most commonly used web application scaffolding and framework at the moment ([Create React App](https://create-react-app.dev)-based [React](https://reactjs.org) applications, which rely on Webpack for module bundling. But the question that now needs to be asked is: are there any other commonly-used JavaScript module bundlers performing similar rewriting which the installer library should also mitigate against?
@@ -328,7 +448,7 @@ Note also that if an inline `providerDirectory` array is defined within the inst
         "fdc3Version": "<agentFdc3VersionString>"
       },
       "providerImplementation": {
-        "moduleUrl": "<agentESModuleJavaScriptFileUrl>",
+        "moduleUrl": "<agentESModuleUrl>",
         "exportedName": "<exportedNameOrDefault>",
         "creationStrategy": {
           "type": "<CreationStrategyType>",
@@ -371,7 +491,7 @@ Note also that if an inline `providerDirectory` array is defined within the inst
       "fdc3Version": "<agentFdc3VersionString>"
     },
     "providerImplementation": {
-      "moduleUrl": "<agentESModuleJavaScriptFileUrl>",
+      "moduleUrl": "<agentESModuleUrl>",
       "exportedName": "<exportedNameOrDefault>",
       "creationStrategy": {
         "type": "<CreationStrategyType>",

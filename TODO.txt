@@ -24,8 +24,7 @@ x Update README with screenshot of demo app
 x Add new section to README - 'Use Case 1: FDC3 App Interop Using Hardcoded Agents'
 x Add new section to README - 'Use Case 2: FDC3 App Interop Using Container-Based Discovery'
 x Proof-read README and update as necessary
-
- Update README with diagrams for Use Case 1 and Use Case 2
+x Update README with diagrams for Use Case 1 and Use Case 2
 
  Create deploy-to-demo-app Shell script or Node script to copy the built installer library across
  Add additional validation in library's installAgent() method e.g. check that providerDef.providerImplementation is truthy
